@@ -1,0 +1,31 @@
+name: build
+
+on: workflow_dispatch
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Build
+        run: go build -o server -ldflags "-linkmode 'external' -extldflags '-static'"
+
+      - name: docker-login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: docker-release
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: zwischenspiell/wheel-server:latest
